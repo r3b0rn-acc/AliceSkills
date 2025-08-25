@@ -4,6 +4,9 @@ RUN apk add --no-cache ca-certificates
 
 WORKDIR /src
 
+ARG GOFLAGS="-p=2"
+ENV CGO_ENABLED=0
+
 COPY go.mod go.sum ./
 RUN go mod download
 
