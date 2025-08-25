@@ -1,16 +1,35 @@
 package main
 
 import (
-	httpserver "AliceSkills/internal/http"
+	"AliceSkills/internal/app"
 	"AliceSkills/pkg/config"
-	"net/http"
+	"AliceSkills/pkg/openai"
+	"context"
+	_ "github.com/joho/godotenv/autoload"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
 	cfg := config.MustLoad()
-	router := httpserver.NewRouter()
-	err := http.ListenAndServe(cfg.Addr(), router)
+	openai.Init(openai.Config{
+		Model:      "",
+		Timeout:    30 * time.Second,
+		MaxRetries: 2,
+		System:     string(openai.VoiceHelperSystemPrompt),
+	})
+
+	a, err := app.New(cfg)
 	if err != nil {
-		return
+		panic(err)
+	}
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if err := a.Run(ctx); err != nil {
+		panic(err)
 	}
 }
