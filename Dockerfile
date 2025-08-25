@@ -14,9 +14,10 @@ ARG PKG=./cmd/skillsrv
 ARG TARGETOS
 ARG TARGETARCH
 
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
-    go build -trimpath -buildvcs=false -ldflags="-s -w" \
-    -o /out/skillsrv ${PKG}
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    --mount=type=cache,target=/go/pkg/mod \
+    go build $GOFLAGS -trimpath -buildvcs=false -ldflags="-s -w" \
+      -o /out/skillsrv ${PKG}
 
 FROM scratch AS final
 
